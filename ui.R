@@ -9,8 +9,6 @@
 
 library(shinydashboard)
 
-
-
 dashboardPage(
   dashboardHeader(title = "Dashboards are cool"),
   dashboardSidebar(
@@ -33,7 +31,8 @@ dashboardPage(
         )
       ),
       tabItem(tabName = "widgets",
-              h2("Widgets tab content")
+              h2("Widgets tab content"),
+              leafletOutput("myMap")
       )
     )
   ),

@@ -9,6 +9,7 @@
 
 library(shiny)
 library(shinydashboard)
+library(leaflet)
 
 # Define server logic required to draw a histogram
 # shinyServer(function(input, output) {
@@ -34,5 +35,12 @@ function(input,output){
   output$plot1 <- renderPlot({
     data <- histdata[seq_len(input$slider)]
     hist(data)
+  })
+  
+  
+  output$myMap <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%  # Add default OpenStreetMap map tiles
+      addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
   })
 }
