@@ -9,8 +9,17 @@
 
 library(shinydashboard)
 
+dbHeader <- dashboardHeader(title = "Weather Report",
+                            tags$li(a(href = 'https://www.put.poznan.pl/',
+                                      img(src = '/logo/PP_logotyp_ANG_CMYK.svg',
+                                          title = "Poznań University Of Technology", height = "50px"),
+                                      style = "padding-top:10px; padding-bottom:10px;"),
+                                    class = "dropdown")
+                            )
+
+
 dashboardPage(
-  dashboardHeader(title = "Dashboards are cool"),
+  dbHeader,
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),

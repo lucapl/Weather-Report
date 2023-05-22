@@ -10,6 +10,7 @@
 library(shiny)
 library(shinydashboard)
 library(leaflet)
+library(httr)
 
 # Define server logic required to draw a histogram
 # shinyServer(function(input, output) {
