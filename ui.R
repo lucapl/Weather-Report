@@ -14,7 +14,7 @@ dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-      menuItem("Widgets", tabName = "widgets", icon = icon("th"))
+      menuItem("Cool map", tabName = "cool_map", icon = icon("th"))
     )
   ),
   dashboardBody(
@@ -30,13 +30,13 @@ dashboardPage(
           )
         )
       ),
-      tabItem(tabName = "widgets",
+      tabItem(tabName = "cool_map",
               h2("Widgets tab content"),
               leafletOutput("myMap")
       )
     )
   ),
-  skin = "red"
+  skin = "green"
 )
 # Define UI for application that draws a histogram
 #shinyUI(
