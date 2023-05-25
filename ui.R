@@ -8,67 +8,58 @@
 #
 
 library(shinydashboard)
+library(leaflet)
+library(DT)
 
-dbHeader <- dashboardHeader(title = "Weather Report",
+tab.name.dashboard <- "dashboard"
+tab.name.main.map <- "specificMap"
+tab.name.about <- "about"
+
+
+dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"),
                             tags$li(a(href = 'https://www.put.poznan.pl/',
                                       img(src = '/logo/PP_logotyp_ANG_CMYK.svg',
-                                          title = "Poznań University Of Technology", height = "50px"),
+                                          title = "Poznań University Of Technology", height = "30px"),
                                       style = "padding-top:10px; padding-bottom:10px;"),
                                     class = "dropdown")
                             )
 
+dbSidebar <- dashboardSidebar(sidebarMenu(
+    menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
+    menuItem("Cool map", tabName = tab.name.main.map, icon = icon("map")),
+    menuItem("About", tabName= tab.name.about, icon = icon("circle-info"))
+  )
+)
+
+tab.about <- tabItem(
+  tabName = tab.name.about,
+  includeMarkdown("README.md")
+)
+
+dbBody <- dashboardBody(
+  tabItems(
+    # First tab content
+    tabItem(tabName = tab.name.dashboard,
+            fluidRow(
+              box(plotOutput("plot1", height = 250)),
+              
+              box(
+                title = "Controls",
+                sliderInput("slider", "Number of observations:", 1, 100, 50)
+              )
+            )
+    ),
+    tabItem(tabName = tab.name.main.map,
+            leafletOutput("myMap"),
+            DTOutput('underMap')
+    ),
+    tab.about
+  )
+)
 
 dashboardPage(
   dbHeader,
-  dashboardSidebar(
-    sidebarMenu(
-      menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-      menuItem("Cool map", tabName = "cool_map", icon = icon("th"))
-    )
-  ),
-  dashboardBody(
-    tabItems(
-      # First tab content
-      tabItem(tabName = "dashboard",
-        fluidRow(
-          box(plotOutput("plot1", height = 250)),
-          
-          box(
-            title = "Controls",
-            sliderInput("slider", "Number of observations:", 1, 100, 50)
-          )
-        )
-      ),
-      tabItem(tabName = "cool_map",
-              h2("Widgets tab content"),
-              leafletOutput("myMap")
-      )
-    )
-  ),
+  dbSidebar,
+  dbBody,
   skin = "green"
 )
-# Define UI for application that draws a histogram
-#shinyUI(
-#   fluidPage(
-# 
-#     # Application title
-#     titlePanel("Old Faithful Geyser Data"),
-# 
-#     # Sidebar with a slider input for number of bins
-#     sidebarLayout(
-#         sidebarPanel(
-#             sliderInput("bins",
-#                         "Number of bins:",
-#                         min = 1,
-#                         max = 50,
-#                         value = 30)
-#         ),
-# 
-#         # Show a plot of the generated distribution
-#         mainPanel(
-#             plotOutput("distPlot")
-#         )
-#     )
-#   )
-#)
-

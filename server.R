@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(DT)
 library(shinydashboard)
 library(leaflet)
 library(httr)
@@ -29,6 +30,13 @@ library(httr)
 #     })
 # 
 # })
+open.meteo <- "https://api.open-meteo.com/v1/"
+
+lists.to.dF <- function(lists){
+  return(as.data.frame(do.call(cbind,lists)))
+}
+
+
 function(input,output){
   set.seed(122)
   histdata <- rnorm(500)
@@ -42,6 +50,32 @@ function(input,output){
   output$myMap <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
-      addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+      setView(lat = 52.4036, lng = 16.95, zoom = 32)
+      #addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+  })
+
+  
+  observeEvent(input$myMap_click, {
+    click <- input$myMap_click
+    if (!is.null(click)) {
+      lng <- click$lng
+      lat <- click$lat
+      leafletProxy("myMap") %>%
+        clearMarkers() %>%
+        addMarkers(lng = lng, lat = lat, popup=paste("lat",lat,"lng",lng))  # Add a marker at the clicked location
+      response <- GET(paste(open.meteo,
+                            "forecast?latitude=",lat,
+                            "&longitude=",lng,
+                            "&hourly=temperature_2m",
+                            sep=""))
+      content.hourly <- lists.to.dF(content(response)$hourly)
+     # print(content(response,"parsed"))
+      output$underMap <- renderDT(
+        datatable(content.hourly),
+        options = list(lengthChange = FALSE)
+      )
+    }
   })
 }
+
+
