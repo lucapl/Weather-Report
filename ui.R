@@ -83,5 +83,6 @@ dashboardPage(
   dbHeader,
   dbSidebar,
   dbBody,
+  title = "Weather Report",
   skin = "green"
 )
