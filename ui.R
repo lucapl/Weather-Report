@@ -8,6 +8,7 @@
 #
 
 library(shinydashboard)
+library(shiny)
 library(leaflet)
 library(DT)
 library(plotly)
@@ -39,6 +40,18 @@ tab.about <- tabItem(
   includeMarkdown("README.md")
 )
 
+weather.Options <- checkboxGroupInput(weatherOptions,
+                                      "Weather options: ",
+                                      c("Temperature" = "temperature_2m",
+                                        "Humidity" = "relativehumidity_2m",
+                                        "Rain" = "rain",
+                                        "Snowfall" = "snowfall",
+                                        "Cloudcover" = "cloudcover",
+                                        "Visibility" = "visibility"),
+                                        selected = c("temperature_2m")
+                                      
+)
+
 dbBody <- dashboardBody(
   tabItems(
     # First tab content
@@ -54,6 +67,7 @@ dbBody <- dashboardBody(
     ),
     tabItem(tabName = tab.name.main.map,
             leafletOutput(specificMapOutput),
+            weather.Options,
             box(DTOutput(underMapDtOutput),width="100vw")
     ),
     tabItem(tabName = tab.name.main.graph,
@@ -63,6 +77,7 @@ dbBody <- dashboardBody(
     tab.about
   )
 )
+
 
 dashboardPage(
   dbHeader,

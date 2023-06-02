@@ -15,14 +15,16 @@ library(httr)
 #library(reshape2)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 library(plotly)
+library(chron)
 
 open.meteo <- "https://api.open-meteo.com/v1/"
 response <- NULL
 columns <- NULL
 
 lists.to.dF <- function(lists){
-  return(as.data.frame(do.call(cbind,lists)))
+  return(as.data.frame(do.call(cbind,lists)) %>% mutate_each(unlist))
 }
 
 
@@ -53,7 +55,7 @@ function(input,output){
     ## get coords
     lng <- click$lng
     lat <- click$lat
-    #print(paste("lat",lat,"lng",lng))
+
     request.lng <- lng %% 360
     if(lng < 0){
       request.lng <- -request.lng
@@ -64,13 +66,20 @@ function(input,output){
     leafletProxy() %>%
       clearMarkers() %>%
       addMarkers(lng = lng, lat = lat, popup=paste("lat",lat,"lng",lng))  # Add a marker at the clicked location
+    #print(paste0("&hourly=",paste(c(input$weatherOptions),collapse=",")))
     
     ## get data
     response <<- GET(paste0(open.meteo,
                           "forecast?latitude=",lat,
                           "&longitude=",request.lng,
-                          "&hourly=temperature_2m,relativehumidity_2m"))
+                          paste0("&hourly=",paste(c(input$weatherOptions),collapse=","))
+                          ))
     response <<- lists.to.dF(content(response)$hourly)
+    
+    response %>%
+      mutate(time=strptime(time,"%Y-%m-%dT%H:%M")) %>%
+      mutate(time=as.POSIXct(time)) ->> response
+    print(head(response))
     
     ## render data table
     output$underMapDtOutput <- renderDT(
@@ -99,7 +108,7 @@ function(input,output){
       #melted <- melt(columns,1)
       #df.names <- labels(columns)
         ggplot(aes(
-          x = as.Date(x),
+          x = x,
           y = y
         )) +
         geom_line()
