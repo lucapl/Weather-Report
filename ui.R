@@ -15,7 +15,10 @@ library(plotly)
 
 tab.name.dashboard <- "dashboard"
 tab.name.main.map <- "specificMap"
+tab.name.map.general <- "generalMap"
 tab.name.main.graph <- "graphMap"
+tab.name.tornadoes <- "tornadoesTab"
+tab.name.climate <- "climate"
 tab.name.about <- "about"
 
 
@@ -28,9 +31,13 @@ dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"
                             )
 
 dbSidebar <- dashboardSidebar(sidebarMenu(
-    menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
-    menuItem("Select place...", tabName = tab.name.main.map, icon = icon("map")),
-    menuItem("...graph its data", tabName = tab.name.main.graph,icon = icon("chart-line")),
+    #menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
+    menuItem("Forecast", tabName = tab.name.map.general, icon = icon("calendar-days")),
+    menuItem("General Map", tabName = tab.name.map.general, icon = icon("map")),
+    menuItem("Tornadoes", tabName = tab.name.tornadoes, icon = icon("tornado")),
+    menuItem("Climate change", tabName = tab.name.climate, icon = icon("earth-europe")),
+    menuItem("Datatable", tabName = tab.name.main.map, icon = icon("table")),
+    #menuItem("...graph its data", tabName = tab.name.main.graph,icon = icon("chart-line")),
     menuItem("About", tabName= tab.name.about, icon = icon("circle-info"))
   )
 )
@@ -49,31 +56,20 @@ weather.Options <- checkboxGroupInput(weatherOptions,
                                         "Cloudcover" = "cloudcover",
                                         "Visibility" = "visibility"),
                                         selected = c("temperature_2m")
-                                      
+)
+
+# datatable tab
+tab.specific <- tabItem(tabName = tab.name.main.map,
+                        leafletOutput(specificMapOutput),
+                        weather.Options,
+                        box(DTOutput(underMapDtOutput),width="100vw"),
+                        actionButton(graphColumnsButton,"Graph Data"),
+                        box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
 )
 
 dbBody <- dashboardBody(
   tabItems(
-    # First tab content
-    tabItem(tabName = tab.name.dashboard,
-            fluidRow(
-              box(plotlyOutput("plot1", height = 250)),
-              
-              box(
-                title = "Controls",
-                sliderInput("slider", "Number of observations:", 1, 100, 50)
-              )
-            )
-    ),
-    tabItem(tabName = tab.name.main.map,
-            leafletOutput(specificMapOutput),
-            weather.Options,
-            box(DTOutput(underMapDtOutput),width="100vw")
-    ),
-    tabItem(tabName = tab.name.main.graph,
-            actionButton(graphColumnsButton,"Graph Data"),
-            box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
-    ),
+    tab.specific,
     tab.about
   )
 )
