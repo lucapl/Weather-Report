@@ -10,9 +10,11 @@
 library(shinydashboard)
 library(leaflet)
 library(DT)
+library(plotly)
 
 tab.name.dashboard <- "dashboard"
 tab.name.main.map <- "specificMap"
+tab.name.main.graph <- "graphMap"
 tab.name.about <- "about"
 
 
@@ -26,7 +28,8 @@ dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"
 
 dbSidebar <- dashboardSidebar(sidebarMenu(
     menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
-    menuItem("Cool map", tabName = tab.name.main.map, icon = icon("map")),
+    menuItem("Select place...", tabName = tab.name.main.map, icon = icon("map")),
+    menuItem("...graph its data", tabName = tab.name.main.graph,icon = icon("chart-line")),
     menuItem("About", tabName= tab.name.about, icon = icon("circle-info"))
   )
 )
@@ -41,7 +44,7 @@ dbBody <- dashboardBody(
     # First tab content
     tabItem(tabName = tab.name.dashboard,
             fluidRow(
-              box(plotOutput("plot1", height = 250)),
+              box(plotlyOutput("plot1", height = 250)),
               
               box(
                 title = "Controls",
@@ -50,8 +53,12 @@ dbBody <- dashboardBody(
             )
     ),
     tabItem(tabName = tab.name.main.map,
-            leafletOutput("myMap"),
-            DTOutput('underMap')
+            leafletOutput(specificMapOutput),
+            box(DTOutput(underMapDtOutput),width="100vw")
+    ),
+    tabItem(tabName = tab.name.main.graph,
+            actionButton(graphColumnsButton,"Graph Data"),
+            box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
     ),
     tab.about
   )

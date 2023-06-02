@@ -12,25 +12,14 @@ library(DT)
 library(shinydashboard)
 library(leaflet)
 library(httr)
+#library(reshape2)
+library(ggplot2)
+library(dplyr)
+library(plotly)
 
-# Define server logic required to draw a histogram
-# shinyServer(function(input, output) {
-# 
-#     output$distPlot <- renderPlot({
-# 
-#         # generate bins based on input$bins from ui.R
-#         x    <- faithful[, 2]
-#         bins <- seq(min(x), max(x), length.out = input$bins + 1)
-# 
-#         # draw the histogram with the specified number of bins
-#         hist(x, breaks = bins, col = 'darkgray', border = 'white',
-#              xlab = 'Waiting time to next eruption (in mins)',
-#              main = 'Histogram of waiting times')
-# 
-#     })
-# 
-# })
 open.meteo <- "https://api.open-meteo.com/v1/"
+response <- NULL
+columns <- NULL
 
 lists.to.dF <- function(lists){
   return(as.data.frame(do.call(cbind,lists)))
@@ -38,43 +27,83 @@ lists.to.dF <- function(lists){
 
 
 function(input,output){
-  set.seed(122)
-  histdata <- rnorm(500)
-  
-  output$plot1 <- renderPlot({
-    data <- histdata[seq_len(input$slider)]
-    hist(data)
-  })
-  
-  
-  output$myMap <- renderLeaflet({
+  # set.seed(122)
+  # histdata <- rnorm(500)
+  # 
+  # output$plot1 <- renderPlot({
+  #   data <- histdata[seq_len(input$slider)]
+  #   hist(data)
+  # })
+  # 
+  #map.specific <- get(map.specific.output,output) 
+  output$specificMapOutput <- renderLeaflet({
     leaflet() %>%
-      addTiles() %>%  # Add default OpenStreetMap map tiles
+      addTiles() %>%  # Add default OpenStreetMap map tilesi
       setView(lat = 52.4036, lng = 16.95, zoom = 32)
       #addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
   })
-
   
-  observeEvent(input$myMap_click, {
-    click <- input$myMap_click
-    if (!is.null(click)) {
-      lng <- click$lng
-      lat <- click$lat
-      leafletProxy("myMap") %>%
-        clearMarkers() %>%
-        addMarkers(lng = lng, lat = lat, popup=paste("lat",lat,"lng",lng))  # Add a marker at the clicked location
-      response <- GET(paste(open.meteo,
-                            "forecast?latitude=",lat,
-                            "&longitude=",lng,
-                            "&hourly=temperature_2m",
-                            sep=""))
-      content.hourly <- lists.to.dF(content(response)$hourly)
-     # print(content(response,"parsed"))
-      output$underMap <- renderDT(
-        datatable(content.hourly),
-        options = list(lengthChange = FALSE)
-      )
+  #paste0("input$",map.specific.output,"_click"),
+  observeEvent(input$specificMapOutput_click, {
+    click <- input$specificMapOutput_click
+    if (is.null(click)) {
+      return (NULL)
     }
+    
+    ## get coords
+    lng <- click$lng
+    lat <- click$lat
+    #print(paste("lat",lat,"lng",lng))
+    request.lng <- lng %% 360
+    if(lng < 0){
+      request.lng <- -request.lng
+    }
+    
+    ## Render marker
+    specificMapOutput %>%
+    leafletProxy() %>%
+      clearMarkers() %>%
+      addMarkers(lng = lng, lat = lat, popup=paste("lat",lat,"lng",lng))  # Add a marker at the clicked location
+    
+    ## get data
+    response <<- GET(paste0(open.meteo,
+                          "forecast?latitude=",lat,
+                          "&longitude=",request.lng,
+                          "&hourly=temperature_2m,relativehumidity_2m"))
+    response <<- lists.to.dF(content(response)$hourly)
+    
+    ## render data table
+    output$underMapDtOutput <- renderDT(
+      response,
+      extensions = 'Select', 
+      selection = list(target = "column"),
+      options = list(ordering = FALSE, 
+                     searching = FALSE, 
+                     pageLength = 25)
+    
+    )
+  })
+  
+  observeEvent(input$underMapDtOutput_columns_selected,{
+    columns <<- response[,input$underMapDtOutput_columns_selected]
+    print(columns)
+  })
+  
+  observeEvent(input$graphColumnsButton,{
+    output$graphColumns <- renderPlot({
+      columns %>%
+        rename(x = 1,
+               y = 2) %>%
+        select(x,y) %>%
+      #print(columns)
+      #melted <- melt(columns,1)
+      #df.names <- labels(columns)
+        ggplot(aes(
+          x = as.Date(x),
+          y = y
+        )) +
+        geom_line()
+    }) 
   })
 }
 
