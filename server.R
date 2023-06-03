@@ -19,35 +19,17 @@ library(tidyr)
 library(plotly)
 library(chron)
 
+# consts
+
 open.meteo <- "https://api.open-meteo.com/v1/"
 response <- NULL
 columns <- NULL
 
+# functions
+
 lists.to.dF <- function(lists){
   return(as.data.frame(do.call(cbind,lists)) %>% mutate_each(unlist))
 }
-
-dataset.tornadoes <- read.csv("./data/us_tornado_dataset_1950_2021.csv")
-dataset.tornadoes <- dataset.tornadoes[sample.int(nrow(dataset.tornadoes)),]
-
-dataset.tornadoes %>%
-  mutate(iconUrl = paste0("./www/tornadoes/tornado_ef",mag,".svg")) %>%
-  mutate(label = paste0("Date: ",date," Fatalities: ",fat," Injuries: ",inj)) -> dataset.tornadoes
-# print(icons(
-#   iconUrl = c(dataset.tornadoes$iconUrl),
-#   iconWidth = 12, iconHeight = 12,
-# ))
-  # mutate(icon = icons(
-  #   iconUrl = c(iconUrl),
-  #   iconWidth = 12, iconHeight = 12,
-  # )) -> dataset.tornadoes
-
-# tornado.icons <- 
-# 
-# dataset.tornadoes %>%
-#    ->dataset.tornadoes
-  #top_n(100) -> dataset.tornadoes
-#print(head(dataset.tornadoes))
 
 function(input,output){
   # set.seed(122)
@@ -75,16 +57,36 @@ function(input,output){
       setView(lat = 35.4819, lng = -97.5084, zoom = 4)
   })
   
+  observeEvent(input$clearTornadoes, {
+    tornadoMapOutput %>%
+      leafletProxy() %>%
+      clearMarkers()
+  })
+  
   observeEvent(input$updateTornadoes, {
     a.mag <- as.integer(input$selectTornadoes)
+    daterange <- input$dateRangeTornadoes
+    date.min <- daterange[1]
+    date.max <- daterange[2]
+    fat.range <- input$fatalitiesTornadoes
+    fat.max <- as.integer(fat.range[2])
+    fat.min <- as.integer(fat.range[1])
+    inj.range <- input$injuriesTornadoes
+    inj.max <- as.integer(inj.range[2])
+    inj.min <- as.integer(inj.range[1])
+    
     
     dataset.tornadoes %>%
-      filter(mag == a.mag) -> subsetData
+      filter(mag == a.mag) %>%
+      filter(date <= date.max & date >= date.min) %>%
+      filter(fat <= fat.max & fat >= fat.min) %>%
+      filter(inj <= inj.max & inj >= inj.min) -> subsetData
     
     #print(subsetData)
 
     tornadoMapOutput %>%
       leafletProxy() %>%
+      clearGroup(a.mag) %>%
       addMarkers(lat = subsetData$elat,
                  lng =  subsetData$elon,
                  popup = subsetData$label,

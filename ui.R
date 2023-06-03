@@ -13,6 +13,8 @@ library(leaflet)
 library(DT)
 library(plotly)
 
+# consts
+
 tab.name.dashboard <- "dashboard"
 tab.name.main.map <- "specificMap"
 tab.name.map.general <- "generalMap"
@@ -21,6 +23,7 @@ tab.name.tornadoes <- "tornadoesTab"
 tab.name.climate <- "climate"
 tab.name.about <- "about"
 
+# Header
 
 dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"),
                             tags$li(a(href = 'https://www.put.poznan.pl/',
@@ -29,6 +32,8 @@ dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"
                                       style = "padding-top:10px; padding-bottom:10px;"),
                                     class = "dropdown")
                             )
+
+# tabs sidebar
 
 dbSidebar <- dashboardSidebar(sidebarMenu(
     #menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
@@ -42,10 +47,14 @@ dbSidebar <- dashboardSidebar(sidebarMenu(
   )
 )
 
+# about tab
+
 tab.about <- tabItem(
   tabName = tab.name.about,
   includeMarkdown("README.md")
 )
+
+# datatable tab
 
 weather.Options <- checkboxGroupInput(weatherOptions,
                                       "Weather options: ",
@@ -58,7 +67,7 @@ weather.Options <- checkboxGroupInput(weatherOptions,
                                         selected = c("temperature_2m")
 )
 
-# datatable tab
+
 tab.specific <- tabItem(tabName = tab.name.main.map,
                         leafletOutput(specificMapOutput),
                         weather.Options,
@@ -67,6 +76,8 @@ tab.specific <- tabItem(tabName = tab.name.main.map,
                         box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
 )
 
+# tornado tab
+
 select.Tornadoes <- selectInput("selectTornadoes",
                                 "Tornado strength (Enchanced Fujita Scale): ",
                                 c("EF0" = 0,"EF1" = 1,"EF2" = 2,"EF3" = 3,"EF4" = 4,"EF5" = 5),
@@ -74,11 +85,45 @@ select.Tornadoes <- selectInput("selectTornadoes",
 )
 update.Tornadoes <- actionButton("updateTornadoes",
                                  "Update")
+clear.Tornadoes <- actionButton("clearTornadoes",
+                                "Clear")
+
+date.min <- min(dataset.tornadoes$date)
+date.max <- max(dataset.tornadoes$date)
+dateRange.Tornadoes <- dateRangeInput("dateRangeTornadoes",
+                                      "Pick dates range",
+                                      start = date.min,
+                                      end = date.max,
+                                      min = date.min,
+                                      max = date.max)
+
+fat.max <- max(dataset.tornadoes$fat)
+slider.Tornadoes.fat <- sliderInput("fatalitiesTornadoes",
+                                "Fatalities",
+                                c(1,fat.max),
+                                step = 1,
+                                min = 0,
+                                max = fat.max)
+
+inj.max <- max(dataset.tornadoes$inj)
+slider.Tornadoes.inj <- sliderInput("injuriesTornadoes",
+                                    "Injuries",
+                                    c(0,inj.max),
+                                    step = 1,
+                                    min = 0,
+                                    max = inj.max)
+
 
 tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
-                              leafletOutput(tornadoMapOutput),
-                              select.Tornadoes,
-                              update.Tornadoes)
+                         leafletOutput(tornadoMapOutput),
+                         update.Tornadoes,
+                         clear.Tornadoes,
+                         select.Tornadoes,
+                         dateRange.Tornadoes,
+                         slider.Tornadoes.fat,
+                         slider.Tornadoes.inj)
+
+# body
 
 dbBody <- dashboardBody(
   tabItems(
@@ -88,6 +133,8 @@ dbBody <- dashboardBody(
   )
 )
 
+
+# render page
 
 dashboardPage(
   dbHeader,
