@@ -34,7 +34,7 @@ dbSidebar <- dashboardSidebar(sidebarMenu(
     #menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
     menuItem("Forecast", tabName = tab.name.map.general, icon = icon("calendar-days")),
     menuItem("General Map", tabName = tab.name.map.general, icon = icon("map")),
-    menuItem("Tornadoes", tabName = tab.name.tornadoes, icon = icon("tornado")),
+    menuItem("Tornadoes in US", tabName = tab.name.tornadoes, icon = icon("tornado")),
     menuItem("Climate change", tabName = tab.name.climate, icon = icon("earth-europe")),
     menuItem("Datatable", tabName = tab.name.main.map, icon = icon("table")),
     #menuItem("...graph its data", tabName = tab.name.main.graph,icon = icon("chart-line")),
@@ -67,9 +67,23 @@ tab.specific <- tabItem(tabName = tab.name.main.map,
                         box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
 )
 
+select.Tornadoes <- selectInput("selectTornadoes",
+                                "Tornado strength (Enchanced Fujita Scale): ",
+                                c("EF0" = 0,"EF1" = 1,"EF2" = 2,"EF3" = 3,"EF4" = 4,"EF5" = 5),
+                                "EF2"
+)
+update.Tornadoes <- actionButton("updateTornadoes",
+                                 "Update")
+
+tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
+                              leafletOutput(tornadoMapOutput),
+                              select.Tornadoes,
+                              update.Tornadoes)
+
 dbBody <- dashboardBody(
   tabItems(
     tab.specific,
+    tab.tornadoes,
     tab.about
   )
 )

@@ -27,6 +27,27 @@ lists.to.dF <- function(lists){
   return(as.data.frame(do.call(cbind,lists)) %>% mutate_each(unlist))
 }
 
+dataset.tornadoes <- read.csv("./data/us_tornado_dataset_1950_2021.csv")
+dataset.tornadoes <- dataset.tornadoes[sample.int(nrow(dataset.tornadoes)),]
+
+dataset.tornadoes %>%
+  mutate(iconUrl = paste0("./www/tornadoes/tornado_ef",mag,".svg")) %>%
+  mutate(label = paste0("Date: ",date," Fatalities: ",fat," Injuries: ",inj)) -> dataset.tornadoes
+# print(icons(
+#   iconUrl = c(dataset.tornadoes$iconUrl),
+#   iconWidth = 12, iconHeight = 12,
+# ))
+  # mutate(icon = icons(
+  #   iconUrl = c(iconUrl),
+  #   iconWidth = 12, iconHeight = 12,
+  # )) -> dataset.tornadoes
+
+# tornado.icons <- 
+# 
+# dataset.tornadoes %>%
+#    ->dataset.tornadoes
+  #top_n(100) -> dataset.tornadoes
+#print(head(dataset.tornadoes))
 
 function(input,output){
   # set.seed(122)
@@ -43,6 +64,36 @@ function(input,output){
       addTiles() %>%  # Add default OpenStreetMap map tilesi
       setView(lat = 52.4036, lng = 16.95, zoom = 32)
       #addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+  })
+  
+  
+  
+
+  output$tornadoMapOutput <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%  # Add default OpenStreetMap map tilesi
+      setView(lat = 35.4819, lng = -97.5084, zoom = 4)
+  })
+  
+  observeEvent(input$updateTornadoes, {
+    a.mag <- as.integer(input$selectTornadoes)
+    
+    dataset.tornadoes %>%
+      filter(mag == a.mag) -> subsetData
+    
+    #print(subsetData)
+
+    tornadoMapOutput %>%
+      leafletProxy() %>%
+      addMarkers(lat = subsetData$elat,
+                 lng =  subsetData$elon,
+                 popup = subsetData$label,
+                 group = a.mag,
+                 icon = makeIcon(iconUrl = subsetData$iconUrl[1],
+                                 iconWidth = 12,
+                                 iconHeight = 12)
+      )
+      
   })
   
   #paste0("input$",map.specific.output,"_click"),
