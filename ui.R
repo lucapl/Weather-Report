@@ -7,12 +7,6 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shinydashboard)
-library(shiny)
-library(leaflet)
-library(DT)
-library(plotly)
-
 # consts
 
 tab.name.dashboard <- "dashboard"
@@ -54,6 +48,15 @@ tab.about <- tabItem(
   includeMarkdown("README.md")
 )
 
+# general tab
+
+update.general <- actionButton("updateGeneral",
+                               "Update")
+
+tab.general <- tabItem(tabName = tab.name.map.general,
+                       leafletOutput(generalMapOutput),
+                       update.general)
+
 # datatable tab
 
 weather.Options <- checkboxGroupInput(weatherOptions,
@@ -79,14 +82,16 @@ tab.specific <- tabItem(tabName = tab.name.main.map,
 # tornado tab
 
 select.Tornadoes <- selectInput("selectTornadoes",
-                                "Tornado strength (Enchanced Fujita Scale): ",
+                                "F/EF scale: ",
                                 c("EF0" = 0,"EF1" = 1,"EF2" = 2,"EF3" = 3,"EF4" = 4,"EF5" = 5),
-                                "EF2"
+                                selected = 2
 )
 update.Tornadoes <- actionButton("updateTornadoes",
                                  "Update")
 clear.Tornadoes <- actionButton("clearTornadoes",
                                 "Clear")
+plotDetails.Tornadoes <- actionButton("plotTornadoes",
+                                 "Update")
 
 date.min <- min(dataset.tornadoes$date)
 date.max <- max(dataset.tornadoes$date)
@@ -115,18 +120,24 @@ slider.Tornadoes.inj <- sliderInput("injuriesTornadoes",
 
 
 tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
-                         leafletOutput(tornadoMapOutput),
-                         update.Tornadoes,
-                         clear.Tornadoes,
-                         select.Tornadoes,
-                         dateRange.Tornadoes,
-                         slider.Tornadoes.fat,
-                         slider.Tornadoes.inj)
+                         sidebarLayout(
+                           sidebarPanel(
+                               update.Tornadoes,
+                               clear.Tornadoes,
+                               select.Tornadoes,
+                               dateRange.Tornadoes,
+                               slider.Tornadoes.fat,
+                               slider.Tornadoes.inj),
+                          mainPanel(
+                           leafletOutput(tornadoMapOutput))),
+                         plotDetails.Tornadoes,
+                         plotOutput(tornadoStateStats))
 
 # body
 
 dbBody <- dashboardBody(
   tabItems(
+    tab.general,
     tab.specific,
     tab.tornadoes,
     tab.about
