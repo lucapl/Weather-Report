@@ -81,7 +81,7 @@ tab.specific <- tabItem(tabName = tab.name.main.map,
 
 # tornado tab
 
-select.Tornadoes <- selectInput("selectTornadoes",
+select.Tornadoes <- checkboxGroupInput("selectTornadoes",
                                 "F/EF scale: ",
                                 c("EF0" = 0,"EF1" = 1,"EF2" = 2,"EF3" = 3,"EF4" = 4,"EF5" = 5),
                                 selected = 2
@@ -130,8 +130,9 @@ tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
                                slider.Tornadoes.inj),
                           mainPanel(
                            leafletOutput(tornadoMapOutput))),
-                         plotDetails.Tornadoes,
-                         plotOutput(tornadoStateStats))
+                         box(fluidRow(column(plotOutput(tornadoStateStats),width=7),
+                                  column(plotOutput("tornadoWidthStats"),width=4)),width="100vw")
+)
 
 # body
 

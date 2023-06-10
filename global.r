@@ -11,6 +11,7 @@ library(chron)
 library(raster)
 library(geofacet)
 library(RColorBrewer)
+library(htmltools)
 
 specificMapOutput <- "specificMapOutput"
 underMapDtOutput <- "underMapDtOutput"
@@ -30,4 +31,4 @@ tornado.pal <- brewer.pal(6,"YlGnBu")
 dataset.tornadoes %>%
   mutate(date = as.Date(date)) %>%
   mutate(iconUrl = paste0("./www/tornadoes/tornado_ef",mag,".svg")) %>%
-  mutate(label = paste0("Date: ",date," Fatalities: ",fat," Injuries: ",inj)) -> dataset.tornadoes
+  mutate(label = paste0("Date: ",date,"<br>Fatalities: ",fat," Injuries: ",inj,"<br>Started at: ",slat,"&nbsp",slon)) -> dataset.tornadoes

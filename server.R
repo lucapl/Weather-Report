@@ -57,7 +57,7 @@ function(input,output){
   #############
   # tornado tab
   
-  tornado.pal <- colorFactor(
+  tornado.pal.leaf <- colorFactor(
     "YlGnBu",0:5
   )
   
@@ -68,9 +68,9 @@ function(input,output){
       addLegend("bottomright",
                 data = 0:5,
                 values = 0:5,
-                pal=tornado.pal,
+                pal=tornado.pal.leaf,
                 title="Tornado Magnitude",
-                labFormat = labelFormat(prefix="F/EF"),
+                labFormat = labelFormat(prefix="F/EF "),
                 opacity = 0.9)
   })
   
@@ -79,7 +79,8 @@ function(input,output){
   observeEvent(input$clearTornadoes, {
     tornadoMapOutput %>%
       leafletProxy() %>%
-      clearMarkers()
+      clearMarkers() %>%
+      clearShapes()
   })
   
   ## update
@@ -98,19 +99,19 @@ function(input,output){
     
     
     dataset.tornadoes %>%
-      filter(mag == a.mag) %>%
+      filter(mag %in% a.mag) %>%
       filter(date <= date.max & date >= date.min) %>%
       filter(fat <= fat.max & fat >= fat.min) %>%
       filter(inj <= inj.max & inj >= inj.min) -> subsetData
-    
     #print(subsetData)
     output$tornadoStateStats <- renderPlot({
       subsetData %>%
         ggplot(aes(date)) +
-        geom_quantile(aes(y = inj), color = "orange") +
-        geom_quantile(aes(y = fat), color = "red") +
+        geom_point(aes(y = inj), color = "orange") +
+        geom_point(aes(y = fat), color = "red") +
         facet_geo(~ st, grid = "us_state_grid2", label = "name") +
         ylab("Injuries and fatalities") +
+        xlab("Date of occurence") +
         scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4)))
        # scale_x_continuous(labels = function(x) paste0("'", substr(x, 3, 4))) +
         # labs(title = "Seasonally Adjusted US Unemployment Rate 2000-2016",
@@ -119,19 +120,36 @@ function(input,output){
         #      y = "Unemployment Rate (%)") +
         #theme(strip.text.x = element_text(size = 6))
     })#,width=678,height=384)
+    
+    output$tornadoWidthStats <- renderPlot({
+      subsetData %>%
+        ggplot(aes(len,
+                   wid,
+                   color=factor(mag))) +
+        geom_point(aes(size=5)) +
+        scale_color_manual(name = "Tornado magnitude: ",
+                           values = tornado.pal,
+                           breaks = 0:5) +
+        scale_size(guide = "none") +
+        ylab("Tornado width [yards]") +
+        xlab("Lenght of the path travelled [miles]")
+    })
   
     tornadoMapOutput %>%
       leafletProxy() -> map
     
     map %>%
-      clearGroup(a.mag) %>%
+      clearShapes() %>%
       addMarkers(lat = subsetData$slat,
                  lng =  subsetData$slon,
                  popup = subsetData$label,
-                 group = a.mag,
-                 icon = makeIcon(iconUrl = subsetData$iconUrl[1],
+                 group = subsetData$mag,
+                 icon = makeIcon(iconUrl = subsetData$iconUrl,
                                  iconWidth = 12,
-                                 iconHeight = 12)) -> map
+                                 iconHeight = 12)) %>%
+      addCircles(lat = subsetData$elat,
+                 lng = subsetData$elon,
+                 label = paste("Ended at",subsetData$elat,subsetData$elon))-> map
     
     for(i in 1:nrow(subsetData)){
       row <- subsetData[i,]
@@ -140,13 +158,22 @@ function(input,output){
       elat <- row$elat
       slat <- row$slat
       if (elon == 0 && elat == 0){
+        map <- addCircles(map,
+                          radius = 1609.34* row$len,
+                          lat = slat, 
+                          lng = slon,
+                          color="red",
+                          label = paste0("Ended somewhere: ",row$len," miles away"),
+                          highlightOptions = highlightOptions(bringToFront = T))
+                          
         next
       }
       map <- addPolylines(map, 
                           lat = c(slat,elat), 
                           lng = c(slon,elon),
                           color="red",
-                          label = paste0("Length: ",row$len," miles"))
+                          label = paste0("Length: ",row$len," miles"),
+                          highlightOptions = highlightOptions(sendToBack = T))
     }
       
   })
@@ -223,7 +250,7 @@ function(input,output){
       columns %>%
         rename(x = 1,
                y = 2) %>%
-        select(x,y) %>%
+        dplyr::zselect(x,y) %>%
       #print(columns)
       #melted <- melt(columns,1)
       #df.names <- labels(columns)
@@ -231,7 +258,9 @@ function(input,output){
           x = x,
           y = y
         )) +
-        geom_line()
+        geom_line() +
+        xlab(colnames(columns)[1]) + 
+        ylab(colnames(columns)[2])
     }) 
   })
 }
