@@ -12,6 +12,7 @@
 tab.name.dashboard <- "dashboard"
 tab.name.main.map <- "specificMap"
 tab.name.map.general <- "generalMap"
+tab.name.forecast <- "forecast"
 tab.name.main.graph <- "graphMap"
 tab.name.tornadoes <- "tornadoesTab"
 tab.name.climate <- "climate"
@@ -31,10 +32,10 @@ dbHeader <- dashboardHeader(title = div(icon("cloud-sun-rain")," Weather Report"
 
 dbSidebar <- dashboardSidebar(sidebarMenu(
     #menuItem("Dashboard", tabName = tab.name.dashboard, icon = icon("dashboard")),
-    menuItem("Forecast", tabName = tab.name.map.general, icon = icon("calendar-days")),
-    menuItem("General Map", tabName = tab.name.map.general, icon = icon("map")),
+    menuItem("Forecast", tabName = tab.name.forecast, icon = icon("calendar-days")),
+    #menuItem("General Map", tabName = tab.name.map.general, icon = icon("map")),
     menuItem("Tornadoes in US", tabName = tab.name.tornadoes, icon = icon("tornado")),
-    menuItem("Climate change", tabName = tab.name.climate, icon = icon("earth-europe")),
+    #menuItem("Climate change", tabName = tab.name.climate, icon = icon("earth-europe")),
     menuItem("Datatable", tabName = tab.name.main.map, icon = icon("table")),
     #menuItem("...graph its data", tabName = tab.name.main.graph,icon = icon("chart-line")),
     menuItem("About", tabName= tab.name.about, icon = icon("circle-info"))
@@ -48,14 +49,23 @@ tab.about <- tabItem(
   includeMarkdown("README.md")
 )
 
+# forecast tab
+
+tab.forecast <- tabItem(tabName = tab.name.forecast,
+                        sidebarLayout(
+                          sidebarPanel(leafletOutput(forecastMapOutput)),
+                          mainPanel(box(plotOutput("forecastPlot"),
+                                        plotOutput("windPlot"),width="100vw",height="100vw"))
+                        ))
+
 # general tab
 
-update.general <- actionButton("updateGeneral",
-                               "Update")
-
-tab.general <- tabItem(tabName = tab.name.map.general,
-                       leafletOutput(generalMapOutput),
-                       update.general)
+# update.general <- actionButton("updateGeneral",
+#                                "Update")
+# 
+# tab.general <- tabItem(tabName = tab.name.map.general,
+#                        leafletOutput(generalMapOutput),
+#                        update.general)
 
 # datatable tab
 
@@ -66,15 +76,18 @@ weather.Options <- checkboxGroupInput(weatherOptions,
                                         "Rain" = "rain",
                                         "Snowfall" = "snowfall",
                                         "Cloudcover" = "cloudcover",
-                                        "Visibility" = "visibility"),
+                                        "Visibility" = "visibility",
+                                        "Dewpoint" = "dewpoint_2m",
+                                        "Surface Pressure" = "surface_pressure",
+                                        "Wind speed" = "windspeed_10m"),
                                         selected = c("temperature_2m")
 )
 
 
 tab.specific <- tabItem(tabName = tab.name.main.map,
-                        leafletOutput(specificMapOutput),
-                        weather.Options,
-                        box(DTOutput(underMapDtOutput),width="100vw"),
+                        sidebarLayout(
+                          sidebarPanel(weather.Options,leafletOutput(specificMapOutput)),
+                          mainPanel(box(DTOutput(underMapDtOutput),width="100vw"))),
                         actionButton(graphColumnsButton,"Graph Data"),
                         box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
 )
@@ -117,6 +130,22 @@ slider.Tornadoes.inj <- sliderInput("injuriesTornadoes",
                                     step = 1,
                                     min = 0,
                                     max = inj.max)
+wid.max <- max(dataset.tornadoes$wid)
+slider.Tornadoes.wid <- sliderInput("widthTornado",
+                                    "Width of a tornado [yards]",
+                                    c(0,wid.max),
+                                    step = 0.1,
+                                    min = 0,
+                                    max = wid.max)
+
+len.max <- max(dataset.tornadoes$len)
+slider.Tornadoes.len <- sliderInput("lengthTornado",
+                                    "Track length [miles]",
+                                    c(0,len.max),
+                                    step = 0.1,
+                                    min = 0,
+                                    max = len.max)
+
 
 
 tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
@@ -127,18 +156,21 @@ tab.tornadoes <- tabItem(tabName = tab.name.tornadoes,
                                select.Tornadoes,
                                dateRange.Tornadoes,
                                slider.Tornadoes.fat,
-                               slider.Tornadoes.inj),
-                          mainPanel(
-                           leafletOutput(tornadoMapOutput))),
+                               slider.Tornadoes.inj,
+                               slider.Tornadoes.wid,
+                               slider.Tornadoes.len),
+                          mainPanel(leafletOutput(tornadoMapOutput))),
                          box(fluidRow(column(plotOutput(tornadoStateStats),width=7),
-                                  column(plotOutput("tornadoWidthStats"),width=4)),width="100vw")
+                                  column(plotlyOutput("tornadoWidthStats"),
+                                         actionButton("showSelectedTornadoes","Show selected"),
+                                         actionButton("clearSelectedTornaodes","Clear Selected"),width=4)),width="100vw")
 )
 
 # body
 
 dbBody <- dashboardBody(
   tabItems(
-    tab.general,
+    tab.forecast,
     tab.specific,
     tab.tornadoes,
     tab.about
