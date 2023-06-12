@@ -1,3 +1,4 @@
+install.packages(c("shiny","DT","shinydashboard","leaflet","httr","ggplot2","dplyr","tidyr","plotly","chron","raster","geofacet","RColorBrewer","htmltools","emojifont"))
 library(rsconnect)
 # Authenticate
 setAccountInfo(name = Sys.getenv("SHINY_ACC_NAME"),
