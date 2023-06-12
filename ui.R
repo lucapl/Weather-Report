@@ -53,7 +53,7 @@ tab.about <- tabItem(
 
 tab.forecast <- tabItem(tabName = tab.name.forecast,
                         sidebarLayout(
-                          sidebarPanel(leafletOutput(forecastMapOutput)),
+                          sidebarPanel(h2("Double click to select a place"),leafletOutput(forecastMapOutput)),
                           mainPanel(box(plotOutput("forecastPlot"),
                                         plotOutput("windPlot"),width="100vw",height="100vw"))
                         ))
@@ -86,8 +86,8 @@ weather.Options <- checkboxGroupInput(weatherOptions,
 
 tab.specific <- tabItem(tabName = tab.name.main.map,
                         sidebarLayout(
-                          sidebarPanel(weather.Options,leafletOutput(specificMapOutput)),
-                          mainPanel(box(DTOutput(underMapDtOutput),width="100vw"))),
+                          sidebarPanel(weather.Options,h2("Double click to select a place"),leafletOutput(specificMapOutput)),
+                          mainPanel(box(h2("Select columns to graph them"),DTOutput(underMapDtOutput),width="100vw"))),
                         actionButton(graphColumnsButton,"Graph Data"),
                         box(plotOutput(graphColumns,height = 250,width="100vw"),width="100vw")
 )

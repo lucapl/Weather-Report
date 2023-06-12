@@ -34,7 +34,7 @@ names(tornado.pal) <- 0:5
 dataset.tornadoes %>%
   mutate(date = as.Date(date)) %>%
   mutate(iconUrl = paste0("./www/tornadoes/tornado_ef",mag,".svg")) %>%
-  mutate(label = paste0("Date: ",date,"<br>Fatalities: ",fat," Injuries: ",inj,"<br>Started at: ",slat,"&nbsp",slon)) -> dataset.tornadoes
+  mutate(label = paste0("Date: ",date,"<br>Fatalities: ",fat," Injuries: ",inj,"<br>Started at: ",slat,"&nbsp",slon,"<br>Width: ",wid)) -> dataset.tornadoes
 dataset.tornadoes$key <- row.names(dataset.tornadoes)
 
 #weather icons
