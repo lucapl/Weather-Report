@@ -7,4 +7,4 @@ setAccountInfo(name = Sys.getenv("SHINY_ACC_NAME"),
 # Deploy
 deployApp(appFiles = c("ui.R", "server.R", "global.r","www/","data/","README.md"),
           appName="Weather-Report",
-          appSourceDoc = "www/")
+          appSourceDoc = "www/*")
