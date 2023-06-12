@@ -2,6 +2,9 @@
 
 ![weather_report](https://media.tenor.com/llGg-8O-x6EAAAAC/weather-report-stone-ocean.gif)
 
+## Live demo:
+![demo](https://lucapl.shinyapps.io/Weather-Report/)
+
 Author: **Łukasz Andryszewski 151930**
 
 ### Description

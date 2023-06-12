@@ -75,6 +75,34 @@ weathercode.to.icon <- function(weathercode,is.day){
   return(new.vector)
 }
 
+plot.geofacet <- function(subsetData,options){
+  p <- renderPlot({
+    subsetData %>%
+      ggplot(aes(date)) -> pp
+    
+    if(options == "both" || options == "inj"){
+      pp + 
+        geom_point(aes(y = inj), color = "orange") +
+        ylab("Injuries") -> pp
+    }
+    if(options == "both" || options == "fat"){
+      pp + 
+        geom_point(aes(y = fat), color = "red") +
+        ylab("Fatalities") -> pp
+    }
+    if(options == "both"){
+      pp + ylab("Injuries and fatalities") -> pp
+    }
+    
+    pp + 
+      facet_geo(~ st, grid = "us_state_grid2") +
+      xlab("Date of occurence") +
+      scale_x_date(labels = function(x) paste0("'", substr(x,3,4))) +
+      scale_y_continuous(n.breaks=3,minor_breaks = NULL)
+  })
+  return(p)
+}
+
 # main
 
 function(input,output){
@@ -222,17 +250,7 @@ function(input,output){
       return(1)
     }
     
-    output$tornadoStateStats <- renderPlot({
-      subsetData %>%
-        ggplot(aes(date)) +
-        geom_point(aes(y = inj), color = "orange") +
-        geom_point(aes(y = fat), color = "red") +
-        facet_geo(~ st, grid = "us_state_grid2") +
-        ylab("Injuries and fatalities") +
-        xlab("Date of occurence") +
-        scale_x_date(labels = function(x) paste0("'", substr(x,3,4))) +
-        scale_y_continuous(n.breaks=3,minor_breaks = NULL)
-    })
+    output$tornadoStateStats <- plot.geofacet(subsetData,input$statSelectTornado)
     
     p <- NULL
     output$tornadoWidthStats <- renderPlotly({
@@ -318,6 +336,12 @@ function(input,output){
     }
       
   })
+  # 
+  # ## geofacet plot
+  # 
+  # observeEvent(input$statSelectTornado,{
+  #   
+  # })
   
   ## select tornado points
   
