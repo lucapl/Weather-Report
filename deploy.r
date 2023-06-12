@@ -1,5 +1,4 @@
 library(rsconnect)
-library(shiny)
 # Authenticate
 setAccountInfo(name = Sys.getenv("SHINY_ACC_NAME"),
                token = Sys.getenv("TOKEN"),
