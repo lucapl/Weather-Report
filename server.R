@@ -47,7 +47,7 @@ click.map <- function(click,map.name){
   lng <- click$lng
   lat <- click$lat
   
-  request.lat <- ifelse(lat>0,lat,-lat)%%180
+  request.lng <- ifelse(lng>0,lng,-lng)%%180
   
   
   ## Render marker
@@ -56,9 +56,9 @@ click.map <- function(click,map.name){
     clearMarkers() %>%
     addMarkers(lng = lng, lat = lat, popup=paste("lat",lat,"lng",lng)) # Add a marker at the clicked location
   
-  print(paste(request.lat,lat))
+  print(paste(lat,request.lng,lng))
   
-  return(c(request.lat,lng))
+  return(c(lat,request.lng))
 }
 
 
@@ -125,9 +125,10 @@ function(input,output){
     lat.lng <- click.map(click,forecastMapOutput)
     lat <- lat.lng[1]
     lng <- lat.lng[2]
+    print(paste(lat,lng))
     
     ## get data
-    forecastResponse <<- get.response(lng,lat,c("temperature_2m",
+    forecastResponse <<- get.response(lat,lng,c("temperature_2m",
                                                 "weathercode",
                                                 "is_day",
                                                 "windspeed_10m",
