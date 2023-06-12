@@ -5,7 +5,7 @@ COPY ui.R ui.R
 COPY server.R server.R 
 COPY global.r global.r
 COPY deploy.r deploy.r
-RUN mkdir www
-COPY www/* www/
-COPY data/ data/
+COPY README.md README.md
+COPY www ./www
+COPY data ./data
 CMD Rscript deploy.r
